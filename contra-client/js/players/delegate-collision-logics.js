@@ -13,7 +13,6 @@ commons.collisions = {
         // The velocity is reasonably fast enough to have penetrated to the overlap depth
         // Disable collision on the x axis
         if(response.overlapV.y > 0 && (~~that.body.vel.y >= ~~response.overlapV.y)){
-
             response.overlapV.x = 0;
             return true;
         }
@@ -30,7 +29,6 @@ commons.collisions = {
         if(this.processedColliders[other.bid]){
             return false;
         }
-
         this.processedColliders[other.bid] = 1;
         return true;
     },
@@ -38,9 +36,8 @@ commons.collisions = {
     withBadguy : function(player, response, other){
 
         if(this.processedColliders[other.mpid]){
-            return false;
+          return false;
         }
-
         this.processedColliders[other.mpid] = 1;
         return true;
     }

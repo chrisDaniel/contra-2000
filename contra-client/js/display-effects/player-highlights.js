@@ -27,14 +27,20 @@ var HL_PlayerWithReload = me.Renderable.extend({
 
     draw : function (renderer) {
 
-        var arcRad = this.target.gun ? (6.28 * this.target.gun.reloadPerc) : 0;
+        //step 1..
+        //figure out draw vars
+        const reloadPerc = commons.playerUtils.getGunReloadPercent(this.target) || 0;
+        const arcRad = 6.28 * reloadPerc;
 
-        var center = this.target.playerState.calcCenterPosition(this.target.pos.x, this.target.pos.y) || [0,0];
-        var posX = this.target.pos.x;
-        var posY = center[1] - .5 * this.target.height;
+        const center = commons.playerUtils.getCenterPosition(this.target) || [0,0];
+        const posX = this.target.pos.x;
+        const posY = center[1] - .5 * this.target.height;
 
-        var color = renderer.getColor();
+        const color = renderer.getColor();
 
+
+        //step 2...
+        //do circle render
         renderer.setGlobalAlpha(.4);
         renderer.setColor(this.teamColor);
         renderer.fillArc(posX, posY, this.target.width/2, 0, 6.28);

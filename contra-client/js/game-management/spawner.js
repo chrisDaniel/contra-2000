@@ -27,6 +27,7 @@ function Random_Spawner() {
         if (!this.spawnon) return;
 
         this.lastSpawn += dt;
+        if (this.nbrSpawns == 0 && this.lastSpawn < 4000) return;
         if (this.lastSpawn < this.nextSpawn) return;
 
         this.lastSpawn = 0;

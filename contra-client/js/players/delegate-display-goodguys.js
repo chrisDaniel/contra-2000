@@ -2,13 +2,16 @@
 
 function Display_BillLance(player, spriteName){
 
+    /*--------------------------------
+    * Variables
+    *--------------------------------*/
     this.player = player;
 
-    var sn = spriteName || game.constants.Character_Bill.sprite_prefix;
+    const sn = spriteName || game.constants.Character_Bill.sprite_prefix;
 
-    var animationmap = [
-        {name : "idle",     frames : [5]},
+    const animationmap = [
         {name : "shooting", frames : [5, 6]},
+        {name : "idle",     frames : [5]},
         {name : "walk",     frames : [26, 27, 28, 29, 30]},
         {name : "jump",     frames : [37, 38, 39, 40]},
         {name : "duck",     frames : [36]},
@@ -19,114 +22,119 @@ function Display_BillLance(player, spriteName){
         {name : "dead",         frames : [50]}
     ];
 
+    /*--------------------------------
+    * Init / Clean UP
+    *--------------------------------*/
     this.player.renderable = commons.me.textureSpriteHelper(game.texture.goodguys, sn, animationmap);
-    this.player.renderable.setCurrentAnimation('idle');
 
     this.highlight = new HL_PlayerWithReload(this.player);
     this.highlight.show();
 
-    this.updateIt = function(dt) {
-
-        var directionFacing = this.player.playerState.direction;
-        (directionFacing == -1) ? this.player.renderable.flipX(true) : this.player.renderable.flipX(false);
-
-        var lifecycle = this.player.playerState.lifecycle;
-        var action = this.player.playerState.activity;
-        var aiming = this.player.playerState.aiming;
-
-        //spawning
-        if(lifecycle == 0){
-            this.update_Sprite('jump');
-            return;
-        }
-        //dying
-        if(lifecycle == 2 || lifecycle == 3){
-
-            if (!this.player.renderable.isCurrentAnimation('dying')) {
-                var that = this;
-                this.player.renderable.setCurrentAnimation('dying', e => that.update_Sprite('dead'));
-            }
-            return;
-        }
-        //dead
-        if(lifecycle == 3){
-            this.update_Sprite('dead');
-            return;
-        }
-
-        //otherwise switch on current action
-        switch (action) {
-
-            //idle
-            case 0 :
-                this.update_Sprite('idle');
-                break;
-
-            //jumping ... falling
-            case 1 :
-            case 6 :
-                this.update_Sprite('jump');
-                break;
-
-            //running
-            case 2:
-                //aim horizontal
-                if (this.player.playerState.getFlagTimer("shooting") < 250) {
-                    this.update_Sprite('shooting');
-                }
-                else if (aiming == 1) {
-                    this.update_Sprite('walk');
-                }
-                else if (aiming == 2) {
-                    this.update_Sprite('aimupwalk')
-                }
-                else if (aiming == 4) {
-                    this.update_Sprite('aimdownwalk')
-                }
-                break;
-
-            //ducking
-            case 3:
-                this.update_Sprite('duck');
-                break;
-
-            //looking up
-            case 4:
-                this.update_Sprite('aimup');
-                break;
-
-            //dropping down
-            case 5:
-                this.update_Sprite('idle');
-                break;
-
-            default :
-                if (this.player.playerState.getFlagTimer("shooting") < 250) {
-                    this.update_Sprite('shooting');
-                }
-                else {
-                    this.update_Sprite('idle');
-                }
-        }
-        this.player.renderable.update(dt);
-    };
-    this.update_Sprite = function(toState, f) {
-
-        if (this.player.renderable.isCurrentAnimation(toState)) {
-            return;
-        }
-        if(f){
-            this.player.renderable.setCurrentAnimation(toState, f);
-        }
-        else{
-            this.player.renderable.setCurrentAnimation(toState);
-        }
-    };
-
     this.cleanUp = function(){
         this.highlight && this.highlight.hide();
     };
+
+
+    /*--------------------------------
+    * Update
+    *--------------------------------*/
+    this.update = function(dt) {
+
+        //step 1..
+        //update face direction
+        const direction = player.flags.getFlag('direction') || 1;
+        (direction == -1) ? this.player.renderable.flipX(true) : this.player.renderable.flipX(false);
+
+        //step 2...
+        //get spriteName ... update sprite
+        const spriteName = this.update_getSpriteName();
+        this.update_Sprite(spriteName);
+        this.player.renderable.update(dt);
+    };
+    this.update_getSpriteName = function(){
+
+        const lifecycle = commons.playerUtils.getLifecycleState(this.player);
+        const input = commons.playerUtils.getCurrentInput(this.player);
+        const aiming = commons.playerUtils.getAimDirection(this.player);
+
+        const isMoving = commons.playerUtils.isMoving(this.player);
+        const isAirborne = commons.playerUtils.isAirborne(this.player);
+        const isShooting = commons.playerUtils.isGunShooting(this.player);
+        const isInputLeftRight = (input.left || input.right) ? true : false;
+
+        //type 1...
+        //states that are forced by lifecycle
+        if(lifecycle == 0){
+            return "idle";
+        }
+        if(lifecycle == 2){
+            return "dying";
+        }
+        if(lifecycle == 3){
+            return "dead";
+        }
+
+
+        //case...
+        //any airborne is just jump
+        if(isAirborne){
+          return "jump";
+        }
+
+        //case...
+        //moving l/r .. aimup
+        if(isInputLeftRight && aiming==2){
+          return "aimupwalk";
+        }
+
+        //case...
+        //moving l/r .. aimdown
+        if(isInputLeftRight && aiming==4){
+          return "aimdownwalk";
+        }
+
+        //case..
+        //moving l/r ... shooting
+        if(isInputLeftRight && isShooting){
+          return "shooting";
+        }
+
+        //case..
+        //moving l/r ... running
+        if(isInputLeftRight){
+          return "walk";
+        }
+
+        //case...
+        //aiming up ... up
+        if(aiming == 3){
+          return "aimup";
+        }
+
+        //case...
+        //input down ... duck
+        if(input.down){
+          return "duck";
+        }
+
+        //case...
+        //stand still...isShooting
+        if(isShooting){
+          return "shooting";
+        }
+
+        //default...
+        //return idle
+        return "idle";
+    };
+
+    this.update_Sprite = function(toState, f) {
+
+        if (this.player.renderable.isCurrentAnimation(toState)) {
+            return false;
+        }
+        this.player.renderable.setCurrentAnimation(toState, f);
+        return true;
+    };
+
 }
-
-
-

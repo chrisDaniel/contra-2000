@@ -28,4 +28,3 @@ game.Explosion1 = me.Entity.extend({
         return false;
     }
 });
-

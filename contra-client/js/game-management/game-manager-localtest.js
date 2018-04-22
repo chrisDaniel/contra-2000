@@ -70,29 +70,18 @@ function GameManager_LocalTest(options) {
         this.gameState.entities[config.bid] = bullet;
     };
 
-    this.postDamage = function (target, bullet) {
-
+    this.postBulletDamage = function (target, bullet) {
         var chartype = target.chartype || "BadGuy";
 
-        commons.game.effect_PlayerBulletKill(target, bullet);
-        bullet.removeIt();
-
         if(chartype == "BadGuy") {
-            target.removeIt();
-            this.gameState.fpu.score++;
-            this.spawner.heatup();
+          this.gameState.fpu.score++;
+          this.spawner.heatup();
+          bullet.onTargetHit(target);
         }
-        else if(chartype == "GoodGuy"){
-            target.processDeath();
-            target.lives--;
-            if(target.lives == 0){
-                this.onGameOver(this.gameState);
-            }
+        if(chartype == "GoodGuy") {
+          bullet.onTargetHit(target);
         }
-    };
-
+    }
     this.postPlayerUpdate = function (player) {
     };
 }
-
-

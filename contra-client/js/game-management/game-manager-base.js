@@ -27,7 +27,6 @@ function GameManager() {
     };
     this.postBullet = function (playerId, team, fromX, fromY, velX, velY) {
     };
-    this.postDamage = function (target, bullet) {
+    this.postBulletDamage = function (target, bullet) {
     };
 };
-

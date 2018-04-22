@@ -9,15 +9,15 @@ commons.game = {
         "Y": {tid: "Y", name: "Yellow", color: "#00FFFF"},
         "U": {tid: "U", name: "Unknown", color: "#FFFFFF"},
     },
-    
+
     getColorForTeam: function(tid){
 
         var team = this.teams[tid] || commons.game.teams["U"];
         return team.color;
     },
-    effect_PlayerBulletKill: function (player, bullet) {
+    effect_ExplodeOnTarget: function (target) {
 
-        var explosion = me.pool.pull("explosion-1", player.pos.x, player.pos.y);
+        var explosion = me.pool.pull("explosion-1", target.pos.x, target.pos.y);
         me.game.world.addChild(explosion, 99);
     },
 };

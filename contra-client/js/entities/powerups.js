@@ -24,7 +24,7 @@ game.Powerup = me.Entity.extend({
             image: 'power-ups-sprite'
         };
         this._super(me.Entity, "init", [x, y, settings]);
-        this.body.collisionType = me.collision.types.ACTION_OBJECT;
+        //this.body.collisionType = me.collision.types.ACTION_OBJECT;
 
         this.body.vel.x = this.dirX * this.velX;
         this.body.vel.y = 0;
@@ -45,18 +45,15 @@ game.Powerup = me.Entity.extend({
     update : function (dt) {
 
         if(!this.inViewport){
-         //   removeIt();
-            this.pos.x = 10;
+          this.pos.x = 10;
         }
-
         if(this.status == 1) {
             if(!this.renderable.isCurrentAnimation('floating')){
                 this.renderable.setCurrentAnimation('floating');
             }
 
             this.t += dt;
-            var y = this.waveamp * Math.sin(2 * Math.PI * this.t / this.wavefreq) + this.yprime;
-
+            const y = this.waveamp * Math.sin(2 * Math.PI * this.t / this.wavefreq) + this.yprime;
             this.body.update();
             this.pos.y = y;
         }
@@ -73,29 +70,16 @@ game.Powerup = me.Entity.extend({
 
     onCollision : function (response, other) {
 
-        switch (other.type){
-
-            case 'bullet' :
-
-                if(this.status == 1){
-                    this.status = 2;
-                    this.t = 0;
-                    this.body.gravity = 0.98;
-                }
-                return true;
-
-            case 'GoodGuy' :
-                return false;
-                break;
-
-
-            case 'platform' :
-                if(this.status == 2) {
-                    return commons.collisions.withPlatformDemo(this, response, other);
-                }
-
-            default :
-                return false;
+        if(this.status == 1 && other.type == 'bullet'){
+            this.body.gravity = 0.8;
+            this.body.vel.x = 0;
+            this.body.vel.y = 0;
+            this.status = 2;
+            return false;
         }
+        if(this.status == 2 && other.type == 'platform') {
+            return true;
+        }
+        return false;
     }
 });

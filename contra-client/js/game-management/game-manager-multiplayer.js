@@ -19,10 +19,10 @@ function GameManager_Multiplayer(options) {
      *-------------------------------------------*/
     this.joinGame = function (onJoin) {
 
-        var joinurl = "game/game-join/" + this.playerName;
+        const joinurl = "game/game-join/" + this.playerName;
         const source = this.http.getJSON(joinurl);
 
-        var that = this;
+        const that = this;
         source.subscribe(
                 response => {that.gjr = response; onJoin();},
                 error => console.error(error),
@@ -48,14 +48,14 @@ function GameManager_Multiplayer(options) {
         this.http.eventstream("game/game-events", e => that.handleEvents(e));
         this.ws.subscribe(m => that.handleUpdates(m));
     };
-    
+
 
 
     /* -------------------------------------------
      * Post Activity
      *
      * player update message
-     * "PU|GID|PID|PN|POSX|POSY|state.lc|state.dir|state.activity|state.aim"
+     * "PU|GID|PID|PN|POSX|POSY|state.lc|direction|not used|state.aim"
      *
      * player hit and killed
      * "PH|GID|PID|BID|POSX|POSY"
@@ -64,14 +64,18 @@ function GameManager_Multiplayer(options) {
      * "BN|GID|PID|TID|POSX|POSY|DIRX|DIRY"
      * -----------------------------------------*/
     this.postPlayerUpdate = function(player) {
+        const lifecycle = commons.playerUtils.getLifecycleState(player);
+        const input = commons.playerUtils.getCurrentInput(player);
+        const aiming = commons.playerUtils.getAimDirection(player);
+        const direction = player.flags.getFlag('direction') || 1;
 
-        var msg = "PU" + "|"
+        const msg = "PU" + "|"
             + this.gameState.gameId + "|"
             + player.mpid + "|" + player.pos.x + "|" + player.pos.y + "|"
-            + player.playerState.lifecycle  + "|"
-            + player.playerState.direction  + "|"
-            + player.playerState.activity + "|"
-            + player.playerState.aiming;
+            + lifecycle  + "|"
+            + direction  + "|"
+            + 'input' + "|"
+            + aiming;
 
         this.ws.send(msg);
     };
@@ -86,7 +90,7 @@ function GameManager_Multiplayer(options) {
 
         this.ws.send(msg);
     };
-    this.postDamage = function (target, bullet) {
+    this.postBulletDamage = function (target, bullet) {
 
         var msg = "PH" + "|"
             + this.gameState.gameId + "|"
@@ -194,24 +198,24 @@ function GameManager_Multiplayer(options) {
     };
     this.handleEvent_playerRemoved = function(event) {
 
-        var pid = event[1];
+        const pid = event[1];
 
         if(pid == this.gameState.fpu.mpid){
             this.onGameOver(this.gameState);
             return;
         }
 
-        var npc = this.gameState.entities[pid];
-        if(npc) npc.removeIt();
+        const npc = this.gameState.entities[pid];
+        if(npc) npc.applyServerRemoveCommand();
     }
     this.handleEvent_playerKilled = function(event) {
 
-        var pid = event[1];
-        var bid = event[2];
-        var sid = event[3];
+        const pid = event[1];
+        const bid = event[2];
+        const sid = event[3];
 
-        var player = this.gameState.entities[pid]
-        var bullet = this.gameState.entities[bid];
+        const player = this.gameState.entities[pid]
+        const bullet = this.gameState.entities[bid];
 
         if(player != null){
             player.processDeath(bullet);
@@ -249,5 +253,3 @@ function GameManager_Multiplayer(options) {
         this.gameState.entities[bid] = bullet;
     };
 }
-
-

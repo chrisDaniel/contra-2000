@@ -48,23 +48,23 @@ var game = {
 
 game.constants = {
 
-    //Server_url          :     "localhost",
-    Server_url          :     "50.112.50.11",
+    Server_url          :     "localhost",
+    //Server_url          :     "50.112.50.11",
 
     Player_width        : 40,
     Player_height       : 40,
     Player_veloXmax     : 2,
     Player_veloYmax     : 13,
-    Player_reloadtime   : 900,
+    Player_reloadtime   : 400,
 
     Bullet_radius   : 4,
     Bullet_diameter : 8,
-    Bullet_velo     : 5,
+    Bullet_velo     : 8,
 
-    Player_spawnDuration : 250,
-    Player_dyingDuration : 1000,
+    Player_spawnDuration : 75,
+    Player_dyingDuration : 3500,
     Player_deadDuration : 100,
-    Player_startlives : 5,
+    Player_startlives : 8,
 
     Character_Bill : {name : "Bill", sprite_prefix : "Bill"},
     Character_Lance : {name : "Lance", sprite_prefix : "Lance"},

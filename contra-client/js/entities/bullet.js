@@ -23,10 +23,6 @@ game.Bullet = me.Entity.extend({
         this.alwaysUpdate = true;
     },
 
-    removeIt : function() {
-        me.game.world.removeChild(this);
-    },
-
     initRenderable : function () {
 
         var color = '#FFFFFF'; //0000'; // game.commons.getColorForTeam(this.team) || '#FFFF00';
@@ -49,14 +45,28 @@ game.Bullet = me.Entity.extend({
     update : function (time) {
 
         if (this.pos.y + this.height <= 0) {
-            this.removeIt();
+            me.game.world.removeChild(this);
         }
         else if(this.pos.x - this.width <= 0){
-            this.removeIt();
+            me.game.world.removeChild(this);
         }
 
         this.body.update();
+        //me.collision.check(this); if i want bullets to destroy each other
         return true;
+    },
+
+    onCollision : function (response, other) {
+
+        if (other.type == 'bullet'){
+          other.onTargetHit(this);
+          me.game.world.removeChild(this);
+        }
+        return false;
+    },
+
+    onTargetHit(target){
+      commons.game.effect_ExplodeOnTarget(target);
+      me.game.world.removeChild(this);
     }
 });
-

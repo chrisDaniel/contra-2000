@@ -1,5 +1,8 @@
 game.GoodGuyServerNpc = me.Entity.extend({
 
+    /*--------------------------------
+    * Init
+    *--------------------------------*/
     init : function (x, y, config) {
 
         //initialization
@@ -14,69 +17,83 @@ game.GoodGuyServerNpc = me.Entity.extend({
         //from server
         //variables
         this.serverCommands = [];
-        this.serverX = x;
-        this.serverY = y;
 
         // melonjs
         // constructor and setup
-        var settings = {
+        this.meSettings = {
             width:  game.constants.Player_width,
             height: game.constants.Player_height
         };
-        this._super(me.Entity, 'init', [x, y, settings]);
+        this._super(me.Entity, 'init', [x, y, this.meSettings]);
         this.alwaysUpdate = true;
         this.body.setVelocity(game.constants.Player_veloXmax, game.constants.Player_veloYmax);
 
 
         //composition
         //delegates for stuff
-        this.movement = new MovementServerChasing(this);
-        this.playerState = new PlayerState(this);
+        this.flags = new Flags(this);
+        this.lifecyle = new PlayerLifeState(this);
+        this.input = new PlayerInput();
+        this.ai = new AI_ServerCommands(this);
+        this.movement = new MovementInput(this);
         this.gun = new Gun(this);
         this.displayHandler = new Display_BillLance(this, this.character.sprite_prefix);
     },
 
-    processDeath : function (bullet) {
-        this.playerState.forceState({lifecyle : 2});
-    },
 
-    applyServerCommands : function (serverCommands){
 
-        this.serverCommands = serverCommands;
-        this.serverX = parseInt(serverCommands[3]);
-        this.serverY = parseInt(serverCommands[4]);
-        this.serverAction = parseInt(serverCommands[8]);
-        this.serverAiming = parseInt(serverCommands[9]);
-    },
-
+    /*--------------------------------
+    * Game Loop / Manage
+    *--------------------------------*/
     update : function (dt) {
 
-        this.movement.update(dt);
+      //step 1...
+      //delegate updates
+      this.input = this.ai.getInput(dt, this.serverCommands);
+      this.lifecyle.update(dt);
+      this.movement.update(dt);
+      this.displayHandler.update(dt);
 
-        this.displayHandler.updateIt(dt);
+      //step 2...
+      //special commands
+      if(this.input.shooting){
+        this.gun.fire(dt);
+      }
+      else{
+        this.gun.idle(dt);
+      }
 
-        this.body.update(dt);
+      //step 2...
+      //melon updates / checks
+      this.body.update(dt);
+      me.collision.check(this);
 
-        me.collision.check(this);
-
-        return (this._super(me.Entity, 'update', [dt]) || this.body.vel.x !== 0 || this.body.vel.y !== 0);
+      //final...
+      game.manager.postPlayerUpdate(this);
+      return (this._super(me.Entity, 'update', [dt]) || this.body.vel.x !== 0 || this.body.vel.y !== 0);
     },
 
     onCollision : function (response, other) {
 
-        switch (other.type){
-
-            case 'platform' :
-                return commons.collisions.withPlatformDemo(this, response, other);
-
-            default :
-                return false;
-        }
+      if (other.type == 'platform'){
+        return commons.collisions.withPlatformDemo(this, response, other);
+      }
+      return false;
     },
 
     removeIt : function() {
         this.displayHandler.cleanUp();
         me.game.world.removeChild(this);
     },
-});
 
+    /*--------------------------------
+    * Server Commands
+    *--------------------------------*/
+    applyServerRemoveCommand : function(command){
+      this.removeIt();
+    },
+    applyServerCommands : function (serverCommands){
+        this.serverCommands = serverCommands;
+    },
+
+});

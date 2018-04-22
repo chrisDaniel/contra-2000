@@ -1,6 +1,9 @@
 
 function Display_BadGuyRed(player, spriteName){
 
+    /*--------------------------------
+    * Vars
+    *--------------------------------*/
     this.player = player;
     var sn = spriteName || "BadGuys";
 
@@ -13,29 +16,36 @@ function Display_BadGuyRed(player, spriteName){
     this.player.renderable = commons.me.textureSpriteHelper(game.texture.badguys, sn, animationmap);
     this.player.renderable.setCurrentAnimation('horiz');
 
-    this.updateIt = function(dt) {
+    /*--------------------------------
+    * Update
+    *--------------------------------*/
+    this.update = function(dt) {
 
-        this.player.playerState.direction >= 0 ? this.player.renderable.flipX(false) : this.player.renderable.flipX(true);
+        //step 1..
+        //update face direction
+        const direction = player.flags.getFlag('direction') || 1;
+        (direction == -1) ? this.player.renderable.flipX(true) : this.player.renderable.flipX(false);
+        
+        //step 2...
+        //get spriteName ... update sprite
+        const spriteName = this.update_getSpriteName();
+        this.update_Sprite(spriteName);
+        this.player.renderable.update(dt);
+    };
+    this.update_getSpriteName = function(){
 
-        switch(this.player.playerState.aiming ) {
+        const aiming = commons.playerUtils.getAimDirection(this.player);
 
-            //aim horizontal
-            case 1 :
-                this.update_Sprite('horiz');
-                break;
-
-            //aim up
-            case 2 :
-            case 3 :
-                this.update_Sprite('up');
-                break;
-
-            //aim down
-            case 4 :
-            case 5 :
-                this.update_Sprite('down');
-                break;
+        //aim up
+        if(aiming == 2 || aiming == 3){
+          return 'up';
         }
+        //aim down
+        if(aiming == 4 || aiming == 5){
+          return 'down'
+        }
+        //else horiz
+        return 'horiz';
     };
     this.update_Sprite = function(toState) {
         if (!this.player.renderable.isCurrentAnimation(toState)) {
@@ -47,6 +57,9 @@ function Display_BadGuyRed(player, spriteName){
 
 function Display_BadGuyRunbot(player, spriteName) {
 
+    /*--------------------------------
+    * Vars
+    *--------------------------------*/
     this.player = player;
     var sn = spriteName || "BadGuys";
 
@@ -57,7 +70,9 @@ function Display_BadGuyRunbot(player, spriteName) {
     this.player.renderable = commons.me.textureSpriteHelper(game.texture.badguys, sn, animationmap);
     this.player.renderable.setCurrentAnimation('run');
 
-    this.updateIt = function (dt) {
-        this.player.playerState.direction >= 0 ? this.player.renderable.flipX(false) : this.player.renderable.flipX(true);
+    this.update = function (dt) {
+      //update face direction
+      const direction = player.flags.getFlag('direction') || 1;
+      (direction == -1) ? this.player.renderable.flipX(true) : this.player.renderable.flipX(false);
     }
 }

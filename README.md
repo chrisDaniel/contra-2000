@@ -28,11 +28,20 @@ Contra-Client
 
 * this folder holds the game client
 * runs with node builds with grunt
+* to run ... cd into the contra-client directory
+   > npm i
+   > grunt serve
+* the game will now be available at http://localhost:3000
 
 Contra-Server
 
 * this folder holds the game server
 * runs with java builds with maven
+* to run ... cd into the contra-service directory
+  > mvn package
+  > mvn mvn spring-boot:run
+* the server will now be available at localhost:80
+* to verify the server is working ... http://localhost/game/sse-flow-test
 
 # Notes
 

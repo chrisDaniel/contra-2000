@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
+
 @RestController
 @RequestMapping("/game")
 public class GameController {
@@ -53,6 +55,6 @@ public class GameController {
     @CrossOrigin(origins = "*")
     @GetMapping(value = "/sse-flow-test", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> testGameFlow() {
-        return Flux.range(1, 1000).map(i -> "Send# " + Integer.toString(i)).delayElementsMillis(10);
+        return Flux.range(1, 1000).map(i -> "Send# " + Integer.toString(i)).delayElements(Duration.ofMillis(10));
     }
 }
